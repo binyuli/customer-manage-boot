@@ -1,0 +1,22 @@
+server:
+  port: 8083
+  tomcat:
+    access-log-enabled: true
+    basedir: D:/manageTemp
+spring:
+  datasource:
+    name: manage
+    url: jdbc:mysql://localhost:3309/manage
+    username: admin
+    password: 123456
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+mybatis: 
+  mapperLocations: classpath:mapper/*.xml
+  typeAliasesPackage: cn.lby.entity
+logging:
+  file: D:/springboot-tomcat-tmp/myapp.log
+  # level:
+    # org:
+      # springframework:
+        # web: DEBUG

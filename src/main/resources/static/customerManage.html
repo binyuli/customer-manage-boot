@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>客户信息列表</title>
+    <link rel="stylesheet" type="text/css" href="/css/reset.css" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.css" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap-table.css">
+    <link rel="stylesheet" type="text/css" href="/css/laydate.css" />
+    <link rel="stylesheet" type="text/css" href="/css/laydate-gray.css" />
+    <script src="/js/jquery-1.11.2.min.js"></script>
+    <script src="/bootstrap/js/bootstrap.js"></script>
+    <script src="/bootstrap/js/bootstrap-table.js"></script>
+    <script src="/bootstrap/js/bootstrap-table-zh-CN.js"></script>
+    <script type="text/javascript" src="/js/laydate.js"></script>
+    <script src="/js/ajax_fn.js"></script>
+    <style>
+        /*demoCSS*/
+        .clearfix:after{clear: both;content: " ";display: block;font-size: 0;height: 0;visibility: hidden;}
+        #myForm .footer .already_sub{background: #ccc;color: #fff;}
+        #myForm .first{width: 450px;margin: 50px auto;border: 1px solid #ccc;padding-bottom: 50px;}
+        #myForm .head{height: 50px;line-height: 50px;font-size: 20px;background: #f5f5f5;}
+        #myForm .head h2{color: #1f93ff;padding: 0 10px;text-align: center;}
+        #myForm .head p{float: right;color: #ff8c00;font-size: 12px;}
+        #myForm .art_pdl50{width: 300px;margin: 0 auto;}
+        #myForm .field{margin-top: 30px;height: 40px;}
+        #myForm .field p{color:red;font-size:12px;display: none;}
+        #myForm .field p.error{display: block;}
+        #myForm .field input{height: 40px;padding-left: 10px;background: none;}
+        #myForm .field .phoneNum{width: 288px;}
+        #myForm .field .testCode{width: 168px;}
+        #myForm .field .getCode{color: #ff8c00;background: #f5f5f5;display: inline-block;height: 40px;line-height: 40px;padding: 0 10px;margin-left: 10px;border: none;width: 100px;}
+        #myForm .field .button-default2 {background: #ccc;color: #333;font-size: 12px;}
+        #myForm .field input.errstyle {border:1px solid red;}
+        #myForm .field input.bor {border:1px solid #C0C0C0;}
+        #myForm .footer{margin-top:30px;text-align: center;}
+        #myForm .btn{width: 140px;height: 40px;background: #4b4b4b;color: #fff;border: none;font-size: 20px;}
+        #main{display: none;}
+        #loading{position: absolute;z-index: 999;width:100%;display: none;text-align: center;margin-top: 240px;}
+        #login{display: none;}
+        #resetSearch{line-height: 40px;cursor: pointer; text-align: center;}
+    </style>
+</head>
+<body style="position: relative;height: 100%;">
+<div id="loading">
+    <img style="width: 40px;" src="/images/loading.gif" />
+</div>
+
+<div class="container" id="login">
+    <form id="myForm" class="validForm">
+        <div class="first">
+            <div class="head clearfix">
+                <h2>客服信息验证</h2>
+            </div>
+            <div class="art_pdl50">
+                <ul>
+                    <li class="field">
+                        <input onfocus="clearerr($(this));" id="phone" class="phoneNum bor" type="text" placeholder="请输入手机号" name="customerPhoneNo"/>
+                        <p>请输入正确的手机号</p>
+                    </li>
+                    <li class="field">
+                        <input onfocus="clearerr($(this));" class="testCode bor" type="text" placeholder="请输入验证码" />
+                        <input type="button" class="getCode" value="获取验证码">
+                        <p>验证码错误</p>
+                    </li>
+                </ul>
+                <div class="footer">
+                    <input class="btn" type="button" value="提交">
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="container" id="main">
+    <div class="page-header">
+        <h1>客户信息列表 <small>您可以在此修改客户信息并且更新用户联系状态</small></h1>
+    </div>
+    <div class="row">
+        <div class="col-md-10">
+            <div class="marketInfoDetail">
+                <h4>请选择城市</h4>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="marketInfo_button" data-toggle="dropdown" style="width:100%;">
+                    切换城市
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" id="marketInfo">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-7">
+                <!--<h5>双击某条记录即可进行修改</h5>-->
+            </div>
+        <div class="col-md-1">
+            <a id="resetSearch">清空</a>
+        </div>
+            <div class="col-md-4">
+                <div>
+                        <div class="search">
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">到店状态<span class="caret"></span></button>
+                                    <ul class="dropdown-menu" role="menu" id="status">
+                                        <li status-para=""><a href="#">全部</a></li>
+                                        <li status-para="0"><a href="#">未回访</a></li>
+                                        <li status-para="1"><a href="#">确定到店</a></li>
+                                        <li status-para="2"><a href="#">确定不到店</a></li>
+                                        <li status-para="3"><a href="#">不确定是否到店</a></li>
+                                    </ul>
+                                </div><!-- /btn-group -->
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">留档日期<span class="caret"></span></button>
+                                    <ul class="dropdown-menu" role="menu" id="createTime">
+                                        <li date-para=""><a href="#">全部</a></li>
+                                        <li date-para="2017-1-1"><a href="#">1月1日</a></li>
+                                        <li date-para="2017-1-2"><a href="#">1月2日</a></li>
+                                        <li date-para="2017-1-3"><a href="#">1月3日</a></li>
+                                        <li date-para="2017-1-4"><a href="#">1月4日</a></li>
+                                        <li date-para="2017-1-5"><a href="#">1月5日</a></li>
+                                        <li date-para="2017-1-6"><a href="#">1月6日</a></li>
+                                    </ul>
+                                </div><!-- /btn-group -->
+                                <input type="text" class="form-control" placeholder="请输入姓名/手机" id="condition">
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-default" id="searchCusInfo"><i class="glyphicon glyphicon-search"></i></button>
+                                </div>
+
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+    </div>
+
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="myModalLabel">修改客户信息</h4>
+                </div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="col-md-12" style="display: none;">
+                            <input type="text" name="customerId" />
+                            <input type="text" name="giftName" />
+                            <input type="text" name="rowIindex" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <p>
+                            <div class="col-md-3">客户姓名：</div>
+                            <div class="col-md-9">
+                                <input class="form-control" id="customerName" type="text" />
+                            </div>
+                        </p>
+                    </div>
+                    <div class="row">
+                        <p>
+                            <div class="col-md-3">性别：</div>
+                            <div class="col-md-9">
+                                <div class="btn-group" data-toggle="buttons" id="customerGender">
+                                    <label class="btn active btn-primary">
+                                        <input type="radio" name="customerGender" value="0" gender="男" autocomplete="off"> 男
+                                    </label>
+                                    <label class="btn btn-primary">
+                                        <input type="radio" name="customerGender" value="1" gender="女" autocomplete="off"> 女
+                                    </label>
+                                </div>
+                            </div>
+                        </p>
+                    </div>
+                    <div class="row">
+                        <p>
+                        <div class="col-md-3">手机号：</div>
+                        <div class="col-md-9">
+                            <input class="form-control" id="customerMobile" readonly="readonly" />
+                        </div>
+                        </p>
+                    </div>
+                    <div class="row">
+                        <p>
+                            <div class="col-md-3">预约时间：</div>
+                            <div class="col-md-9">
+                                <input class="form-control" type="text" name="appointmentDate" id="appointmentDate"/>
+                            </div>
+                        </p>
+                    </div>
+                    <div class="row">
+                        <p>
+                            <div class="col-md-3">确认状态：</div>
+                            <div class="col-md-9">
+                                <div class="btn-group" data-toggle="buttons" id="customerStatus">
+                                    <label class="btn btn-primary">
+                                        <input type="radio" name="customerStatus" value="0" status="未回访" autocomplete="off"> 未回访
+                                    </label>
+                                    <label class="btn btn-primary">
+                                        <input type="radio" name="customerStatus" value="1" status="确定到店" autocomplete="off"> 确定到店
+                                    </label>
+                                    <label class="btn btn-primary">
+                                        <input type="radio" name="customerStatus" value="2" status="确定不到店" autocomplete="off"> 确定不到店
+                                    </label>
+                                    <label class="btn btn-primary">
+                                        <input type="radio" name="customerStatus" value="3" status="不确定是否到店" autocomplete="off"> 不确定是否到店
+                                    </label>
+                                </div>
+                            </div>
+                        </p>
+                    </div>
+                    <div class="row">
+                        <p>
+                            <div class="col-md-3">备注：</div>
+                            <div class="col-md-9">
+                                <textarea class="form-control" rows="3" id="customerComment"></textarea>
+                            </div>
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveData">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<div>
+    <p>
+        <table id="table"></table>
+    </p>
+</div>
+
+</div>
+
+<script>
+        var currentMarketActivityId=""; //当前市场活动id
+        var tableData=[];
+$(function () {
+    ajax_fn("get","appointmentCheck/check","",function(res){
+        if(res=="accessible"){
+            showMain();
+        }else{
+            login();
+        }
+    })
+})
+        function login(){
+            $("#login").show();
+            /*验证手机号正则*/
+            var reg = /^1[34578]\d{9}$/;
+            /*验证码倒计时*/
+            var $getCode=$('.getCode');
+            var $testCode=$('.testCode');
+            var $phone=$('#phone');
+            $("#phone").blur(function(){
+                var mobile = $phone.val();
+                if (reg.test(mobile)){
+                    $phone.addClass('bor').removeClass('errstyle');
+                    $(".field p").eq(0).removeClass('error');
+                }else{
+                    $phone.addClass('errstyle').removeClass('bor');
+                    $(".field p").eq(0).addClass('error');
+                };
+            });
+            $getCode.on("click",function(){
+                var mobile = $phone.val();
+                if (reg.test(mobile)) {
+                    circle();
+                    $phone.addClass('bor').removeClass('errstyle');
+                    $(".field p").eq(0).removeClass('error');
+                    $getCode.prop("disabled",true);
+                    //ajax发送手机验证码
+                    console.log({mobile:mobile});
+                    ajax_fn("post","/appointmentCheck/sendCode.do",mobile,send_success)
+                    function send_success(data){
+                        console.log(data);
+                        if(data=="success"){
+
+                        }else{
+                            alert("您没有登录权限!请确认手机号是否正确!")
+                            $getCode.prop("disabled",false);
+                        }
+                    };
+                } else {
+                    $phone.removeClass('bor').addClass('errstyle');
+                    $(".field p").eq(0).addClass('error');
+                };
+            });
+            //发送验证码计时
+            function circle(){
+                var num = 60;
+                var timer = null;
+                timer = setInterval(function(){
+                    /*$getCode.html(num + 's后重新获取');*/
+                    $getCode.addClass('button-default2');
+                    $getCode.val(num + 's后重新获取');
+                    num--;
+                    if(num < 0){
+                        $getCode.prop("disabled",false);
+                        num = 60;
+                        clearInterval(timer);
+                        $getCode.val('重新获取').removeClass('button-default2');
+                    }
+                },1000);
+            };
+            //第一个页面中检查input值是否为空
+            function checkInput(obj) {
+                var val = obj.val();
+                if(val == "") {
+                    obj.removeClass('bor').addClass('errstyle');
+                    return false;
+                } else {
+                    return true;
+                }
+            };
+
+
+            //提交校验
+            function dosubmit() {
+                var input1 = checkInput($phone);
+                var input2 = checkInput($testCode);
+                var input4 = reg.test($phone.val());
+                if(input1 && input2 && input4) {
+                    //提交表单代码
+                    return true
+                } else {
+                    //alert("验证不通过不能提交");
+                    return false
+                }
+            };
+            $(".first .btn").click(function(){
+                if(dosubmit()){
+                    //alert("提交成功")
+                    /*{
+                     "mobile": [string],         // 登录手机号
+                     "dynamicNum": [string]      // 动态验证码
+                     }*/
+                    var mobile=$phone.val();
+                    var dynamicNum=$testCode.val();
+                    console.log({mobile:mobile,dynamicNum:dynamicNum});
+                    ajax_fn("post","appointmentCheck/login",JSON.stringify({mobile:mobile,dynamicNum:dynamicNum}),checksuccess)
+                }else{
+                    dosubmit();
+                }
+            })
+            function checksuccess(response){
+                if(response=="success"){
+                    showMain();
+                }else{
+                    alert("登录失败！请检查验证码是否过期或者是否有登录权限！")
+                }
+            }
+        }
+        //获取焦点时清除错误
+        function clearerr(obj) {
+            if(obj.hasClass('errstyle')) {
+                obj.removeClass('errstyle').addClass('bor');
+                obj.next("p").removeClass('error');
+            }
+        };
+function showMain() {
+    $("#main").show();
+    $("#login").hide();
+
+   //页面主体功能
+    ajax_fn("get","/appointmentCheck/main.do","",getMarketActivityInfo,beforeSendFn);
+    function getMarketActivityInfo(data){
+        $("#loading").css("display","none");
+        console.log(data);
+        $.each(data,function(i,v){
+            var $li='<li role="presentation" marketActivityId="'+v.marketActivityId+'"><a role="menuitem" tabindex="-1" href="#">'+v.city+'</a></li>';
+            $("#marketInfo").append($li);
+        });
+
+    //切换城市按钮点击函数
+        $("#marketInfo").on("click","li",function(){
+            var marketActivityId=$(this).attr('marketActivityId');
+            var index=$(this).index();
+            //判断市场活动是否变更，是=>重新向后台请求数据
+
+            loadMarketActivityInfo(data[index]);
+            ajax_fn("get","/appointmentCheck/customers.do",{marketActivityId:marketActivityId},function(data){
+                $("#loading").css("display","none");
+                tableData=data;
+                initTable(changeGenderAndStatusToString(tableData));
+                currentMarketActivityId=marketActivityId;
+            },beforeSendFn)
+
+        });
+    }
+
+    $("#resetSearch").click(function(){
+        var arrow="<span class='caret'></span>";
+        $("#status").siblings('button').html("到店状态").append(arrow);
+        $("#status").children('li').removeClass('checkedOption');
+        $("#createTime").siblings('button').html("留档日期").append(arrow);
+        $("#createTime").children('li').removeClass('checkedOption');
+        $("#condition").val('');
+    })
+
+    //修改控件效果
+    $(".dropdown-menu").on("click","li",function(){
+        var arrow="<span class='caret'></span>";
+        var button=$(this).children('a').html();
+        $(this).parent().parent().find("button").html(button).append(arrow);
+        $(this).siblings().removeClass("checkedOption");
+        $(this).addClass("checkedOption");
+    })
+
+    //搜索功能
+    $("#searchCusInfo").click(function(){
+        //var parameter = $(this).parent().parent().find(".dropdown-menu").children("li.checkedOption").attr("query-para");
+//            console.log(parameter);
+        var queryPara={};
+        queryPara.marketActivityId = currentMarketActivityId;
+        queryPara.customerStatus=$(this).parent().parent().find("#status").children("li.checkedOption").attr("status-para");
+        queryPara.condition=$(this).parent().parent().find("input.form-control").val();
+        queryPara.createTime=$(this).parent().parent().find("#createTime").children("li.checkedOption").attr("date-para");
+        query(queryPara)
+    })
+    $("#status li").click(function(){
+        var queryPara={};
+        queryPara.customerStatus=$(this).attr("status-para");
+        queryPara.condition=$(this).parent().parent().parent().find("input.form-control").val();
+        queryPara.createTime=$(this).parent().parent().parent().find("#createTime").children("li.checkedOption").attr("date-para");
+        query(queryPara);
+    });
+
+    $("#createTime li").click(function(){
+        var queryPara={};
+        queryPara.customerStatus=$(this).parent().parent().parent().find("#status").children("li.checkedOption").attr("status-para");
+        queryPara.condition=$(this).parent().parent().parent().find("input.form-control").val();
+        queryPara.createTime=$(this).attr("date-para");
+        query(queryPara);
+    });
+    $("#condition").keydown(function(event){
+        if(event.keyCode==13){
+            var queryPara={}
+            queryPara.createTime=$(this).parent().find("#createTime").children("li.checkedOption").attr("date-para");
+            queryPara.customerStatus=$(this).parent().find("#status").children("li.checkedOption").attr("status-para");
+            queryPara.condition=$(this).val();
+            query(queryPara);
+        }
+    });
+    function query(queryPara){
+        console.log(queryPara);
+        queryPara.marketActivityId=currentMarketActivityId;
+        ajax_fn("get","/appointmentCheck/customers.do",queryPara,refleshGrid,beforeSendFn)
+        function refleshGrid(data){
+            $("#loading").css("display","none");
+            console.log(data);
+            initTable(changeGenderAndStatusToString(data));
+            tableData=data;
+        }
+    }
+
+    //动态加载市场活动信息   market_activity是object
+    function loadMarketActivityInfo(market_activity){
+        var $h4="<h4>当前城市：<span class='text-primary'>"+market_activity.city+"</span> 活动地点：<span class='text-primary'>"+market_activity.marketActivityAddress+"</span> 活动时间：<span class='text-primary'>"+market_activity.marketActivityTime+"</span></h4>"
+        $(".marketInfoDetail").html("");
+        $(".marketInfoDetail").append($h4);
+    }
+    //表格初始化
+    function initTable(data){
+        $('#table').bootstrapTable({
+            columns: [{
+                field: 'customerId',
+                title: '用户id',
+                visible:false,
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'customerName',
+                title: '客户姓名',
+                valign:"middle",
+                align:"center"
+            }, {
+                field: 'customerGender',
+                title: '性别',
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'customerMobile',
+                title: '手机号',
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'appointmentDate',
+                title: '预约时间',
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'createTime',
+                title: '留档时间',
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'giftName',
+                title: '礼品名称',
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'customerStatus',
+                title: '确认状态',
+                valign:"middle",
+                align:"center"
+            },{
+                field: 'customerComment',
+                title: '备注',
+                width:"200px",
+                valign:"middle",
+                halign:"center"
+            },{
+                title:"操作",
+                events: operateEvents,
+                formatter: operateFormatter,
+                valign:"middle",
+                align:"center"
+            }
+            ],
+            striped:true,
+            search:false,
+            showRefresh:false,
+            idField:"customerId",
+            uniqueId:"customerId",
+            pagination:true,
+            pageSize:10
+
+        });
+        console.log(data);
+        $('#table').bootstrapTable('load', data);
+    };
+
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a class="modification" href="javascript:void(0)" title="修改" style="text-decoration: none;color:#333">',
+            '<i class="glyphicon glyphicon-pencil"></i>',
+            '</a>  ',
+            '<a class="sendMes" href="javascript:void(0)" title="发送信息" style="text-decoration: none;color:#333">',
+            '<i class="glyphicon glyphicon-envelope"></i>',
+            '</a>'
+        ].join('');
+    }
+
+    window.operateEvents = {
+        'click .modification': function (e, value, row, index) {
+            //alert('You click like action, row: ' + JSON.stringify(row));
+            console.log(index);
+            showBSModal(index);
+            var customerNew={};
+            $("#saveData").click(function(){
+                customerNew={};
+                $("#saveData").prop("disabled",true);
+                customerNew.marketActivityId=currentMarketActivityId;
+                customerNew.customerId=$("input[name='customerId']").val()
+                customerNew.customerComment=$("#customerComment").val();
+                customerNew.customerGender=$("#customerGender input[type='radio']:checked").attr("value");
+                customerNew.customerName=$("#customerName").val();
+                customerNew.appointmentDate=$("#appointmentDate").val();
+                customerNew.customerStatus=$("#customerStatus input[type='radio']:checked").attr("value");
+                console.log(customerNew);
+                ajax_fn("post","/appointmentCheck/saveCustomer.do",JSON.stringify(customerNew),submit_success,beforeSendFn)
+                function submit_success(data){
+                    $("#loading").css("display","none");
+                    console.log(data);
+                    if("success"==data){
+                        $("#saveData").unbind('click');
+                        $("#saveData").prop("disabled",false);
+                        $('#myModal').modal('hide');
+                        customerNew.giftName=$("input[name='giftName']").val();
+                        customerNew=changGenderAndStatusJsonToString(customerNew);
+                        console.log(customerNew);
+                        $('#table').bootstrapTable('updateRow', {index:index, row: {
+                            customerComment:""+customerNew.customerComment,
+                            customerGender:""+customerNew.customerGender,
+                            customerName:""+customerNew.customerName,
+                            appointmentDate:""+customerNew.appointmentDate,
+                            customerStatus:""+customerNew.customerStatus
+                        }});
+
+                        //$('#table').bootstrapTable('refresh');
+                        /*ajax_fn("get","/appointmentCheck/customers.do",{marketActivityId:currentMarketActivityId},function(res){
+                         tableData=res;
+                         initTable(changeGenderAndStatusToString(tableData));
+                         })*/
+                    }else {
+                        $('#myModal').modal('hide');
+                        alert("保存失败!!");
+                        $("#saveData").unbind("click");
+                    };
+                };
+            });
+            $('#cancel').on('click',function(){
+                $("#saveData").unbind("click");
+            });
+            $('.modal-backdrop').on('click',function(){
+                $("#saveData").unbind("click");
+            });
+
+        },
+        'click .sendMes': function (e, value, row, index) {
+            if(row.customerStatus=="确定到店"){
+                ajax_fn("get","/appointmentCheck/sendMessage.do",{marketActivityId:currentMarketActivityId,customerId:row.customerId},function(data){
+                    $("#loading").css("display","none");
+                    if("success"==data){
+                        alert("发送成功!");
+                    }else{
+                        alert("发送失败!");
+                    };
+
+                },beforeSendFn)
+            }else{
+                $("#loading").css("display","none");
+                alert("用户确认状态为‘确定到店’时可发送！");
+            }
+        }
+    };
+
+    //显示用户信息  并召唤模态框
+    function showBSModal(index){
+        $('#myModal').modal('show');
+        console.log(tableData);
+        console.log(index);
+        console.log(tableData[index]);
+        var customerData=changeGenderAndStatusToNum(tableData[index]);
+        $("input[name='customerId']").val(customerData.customerId);
+        $("#customerName").val(customerData.customerName);
+        $("input[name='giftName']").val(customerData.giftName);
+        //$("input[name='rowIndex']").val(customerData.index);
+        var checkedGender=$("#customerGender input[value='"+customerData.customerGender+"']");
+        checkedGender.prop("checked",true);
+        checkedGender.parent().parent().children("label").removeClass("active");
+        checkedGender.parent("label").addClass("active");
+        $("#appointmentDate").val(customerData.appointmentDate);
+        $("#customerMobile").val(customerData.customerMobile);
+        var checkedStatus=$("#customerStatus input[value='"+customerData.customerStatus+"']");
+        checkedStatus.prop("checked",true);
+        checkedStatus.parent().parent().children("label").removeClass('active')
+        checkedStatus.parent('label').addClass('active');
+        $("#customerComment").val(customerData.customerComment);
+        //时间控件的调用
+        $("input[name='appointmentDate']").focus(function(){
+            laydate({
+                elem: '#appointmentDate',
+                istime: true,
+                format: 'YYYY-MM-DD hh:mm:ss',
+                min: "2017-01-07", //活动开始日期
+                max: "2017-01-08", //活动结束日期
+                choose: function(data){
+                    $('#appointmentDate').blur();
+                }
+            });
+        })
+    }
+
+    function beforeSendFn(){
+        $("#loading").css("display","block");
+        //console.log("123")
+    }
+
+    //转换性别、状态   数字=>中文
+    function changeGenderAndStatusToString(data){
+        var initData=data;
+        $.each(initData,function(i,v){
+            if(v.customerGender==0){
+                initData[i].customerGender = "男";
+            }else if(v.customerGender==1){
+                initData[i].customerGender = "女";
+            }
+
+            if(v.customerStatus==0){
+                initData[i].customerStatus = "未回访";
+            }else if(v.customerStatus==1){
+                initData[i].customerStatus = "确定到店";
+            }else if(v.customerStatus==2){
+                initData[i].customerStatus = "确定不到店";
+            }else if(v.customerStatus==3){
+                initData[i].customerStatus = "不确定是否到店";
+            }
+        });
+        return(initData)
+    }
+    function changGenderAndStatusJsonToString(data){
+        var initData=data;
+        if(initData.customerGender==0){
+            initData.customerGender = "男";
+        }else if(initData.customerGender==1){
+            initData.customerGender = "女";
+        }
+
+        if(initData.customerStatus==0){
+            initData.customerStatus = "未回访";
+        }else if(initData.customerStatus==1){
+            initData.customerStatus = "确定到店";
+        }else if(initData.customerStatus==2){
+            initData.customerStatus = "确定不到店";
+        }else if(initData.customerStatus==3){
+            initData.customerStatus = "不确定是否到店";
+        }
+        return(initData)
+    }
+    //转换性别、状态   中文=>数字
+    function changeGenderAndStatusToNum(data){
+        var initData=data;
+        if(initData.customerGender=="男"){
+            initData.customerGender = 0;
+        }else if(initData.customerGender=="女"){
+            initData.customerGender = 1;
+        }
+
+        if(initData.customerStatus=="未回访"){
+            initData.customerStatus = 0;
+        }else if(initData.customerStatus=="确定到店"){
+            initData.customerStatus = 1;
+        }else if(initData.customerStatus=="确定不到店"){
+            initData.customerStatus = 2;
+        }else if(initData.customerStatus=="不确定是否到店"){
+            initData.customerStatus = 3;
+        }
+        return(initData)
+    }
+}
+
+
+</script>
+</body>
+</html>
