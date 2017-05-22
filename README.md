@@ -5,3 +5,7 @@
   如果遇到程序内存当中还是正常的但写到数据库时中文就乱码了的情况，请参考:[解决方案](http://blog.csdn.net/blueheart20/article/details/52385142));
 
   初始数据放在了 manage.sql 文件中;
+  
+  系统首页地址: http://localhost:8083/customerManage.html;
+  
+  测试用管理员用户名: 13166666666 , 密码: 123456 ;
